@@ -32,7 +32,11 @@ public class Experiment {
     @Column(nullable = false)
     private String variables;
 
+    @Column(name = "open_for_auto_inscription", nullable = false, columnDefinition = "bit(1) default 0")
+    private boolean openForAutoInscription = false;
+
     @ManyToOne(fetch = FetchType.LAZY)
+
     @JoinColumn(name = "user_id", nullable = false)
     @JsonBackReference(value = "user-experiments")
     private UserEntity createdBy; //

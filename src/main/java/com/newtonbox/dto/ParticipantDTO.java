@@ -1,6 +1,5 @@
 package com.newtonbox.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 @Getter
@@ -11,7 +10,7 @@ import lombok.*;
 public class ParticipantDTO {
 
     private Long id;
-    private UserDTO user;
+    private String username;
     private String role;
-    private ExperimentDTO experiment;
+    private Long experimentId;
 }

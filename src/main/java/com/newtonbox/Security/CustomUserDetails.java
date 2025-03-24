@@ -10,11 +10,11 @@ import java.util.Collection;
  * para añadir un campo 'id' que representa el ID del usuario en la base de datos
  */
 @Getter
-public class CustomeUserDetails extends User {
+public class CustomUserDetails extends User {
 
     private Long id; // Añadimos el campo de la id
 
-    public CustomeUserDetails(Long id, String username, String password, boolean enabled, boolean accountNonExpired, boolean credentialsNonExpired, boolean accountNonLocked, Collection<? extends GrantedAuthority> authorities) {
+    public CustomUserDetails(Long id, String username, String password, boolean enabled, boolean accountNonExpired, boolean credentialsNonExpired, boolean accountNonLocked, Collection<? extends GrantedAuthority> authorities) {
         super(username, password, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, authorities);
         this.id = id;
     }

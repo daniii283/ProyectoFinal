@@ -4,13 +4,9 @@ C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\Controllers\ExperimentCon
 C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\Controllers\ParticipantController.java
 C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\Controllers\ResultController.java
 C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\Controllers\UserController.java
+C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\dto\ChangePasswordDTO.java
 C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\dto\CommentDTO.java
 C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\dto\ExperimentDTO.java
-C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\dto\generic\IdUsernameDTO.java
-C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\dto\generic\SimpleCommentDTO.java
-C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\dto\generic\SimpleParticipantDTO.java
-C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\dto\generic\SimpleResultDTO.java
-C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\dto\generic\SimpleRoleDTO.java
 C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\dto\ParticipantDTO.java
 C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\dto\PermissionDTO.java
 C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\dto\ResultDTO.java
@@ -37,7 +33,7 @@ C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\Repository\IParticipantRe
 C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\Repository\IResultRepository.java
 C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\Repository\IRoleRepository.java
 C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\Repository\IUserRepository.java
-C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\Security\CustomeUserDetails.java
+C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\Security\CustomUserDetails.java
 C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\Security\SecurityConfig.java
 C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\Services\ICommentService.java
 C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\Services\IExperimentService.java
@@ -50,6 +46,9 @@ C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\Services\Impl\UserService
 C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\Services\IParticipantService.java
 C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\Services\IResultService.java
 C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\Services\IUserService.java
-C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\utils\ClaseEjemplo.java
 C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\utils\PermissionEnum.java
 C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\utils\RoleEnum.java
+C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\validators\CommentValidator.java
+C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\validators\ExperimentValidator.java
+C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\validators\ParticipantValidator.java
+C:\ProyectoFinal\newtonbox\src\main\java\com\newtonbox\validators\ResultValidator.java

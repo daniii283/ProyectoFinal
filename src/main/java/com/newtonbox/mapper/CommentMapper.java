@@ -1,9 +1,10 @@
 package com.newtonbox.mapper;
 
 import com.newtonbox.Models.Comment;
+import com.newtonbox.Models.Experiment;
+import com.newtonbox.Models.UserEntity;
 import com.newtonbox.dto.CommentDTO;
 
-import java.time.LocalDateTime;
 
 public class CommentMapper {
 
@@ -13,19 +14,30 @@ public class CommentMapper {
         return CommentDTO.builder()
                 .id(comment.getId())
                 .content(comment.getContent())
-                .user(UserMapper.toDTO(comment.getUser()))
+                .username(comment.getUser().getUsername())
+                .experimentId(comment.getExperiment().getId())
                 .timestamp(comment.getTimestamp())
                 .build();
     }
 
     public static Comment toEntity(CommentDTO commentDTO){
         if(commentDTO == null) return null;
+
         Comment comment = new Comment();
         comment.setId(commentDTO.getId());
         comment.setContent(commentDTO.getContent());
-        comment.setUser(UserMapper.toEntity(commentDTO.getUser()));
-        comment.setTimestamp(commentDTO.getTimestamp() != null ? commentDTO.getTimestamp() : LocalDateTime.now());
 
+        if (commentDTO.getUsername() != null){
+            UserEntity user = new UserEntity();
+            user.setUsername(commentDTO.getUsername());
+            comment.setUser(user);
+        }
+
+        if (commentDTO.getExperimentId() != null){
+            Experiment experiment = new Experiment();
+            experiment.setId(commentDTO.getExperimentId());
+            comment.setExperiment(experiment);
+        }
         return comment;
     }
 }

@@ -21,7 +21,7 @@ public class PermissionMapper {
         Permission permission = new Permission();
         permission.setId(permissionDTO.getId());
         try {
-            permission.setPermissionEnum(Enum.valueOf(permission.getPermissionEnum().getDeclaringClass(), permissionDTO.getPermissionEnum()));
+            permission.setPermissionEnum(PermissionEnum.valueOf(permissionDTO.getPermissionEnum()));
         } catch (IllegalArgumentException e) {
             System.err.println("Error al convertir permissionEnum: " + permissionDTO.getPermissionEnum());
             throw new RuntimeException("Permission inválida: " + permissionDTO.getPermissionEnum());

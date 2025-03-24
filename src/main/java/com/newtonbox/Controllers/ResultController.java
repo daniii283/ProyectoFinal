@@ -1,20 +1,19 @@
 package com.newtonbox.Controllers;
 
-import com.newtonbox.Models.Experiment;
-import com.newtonbox.Models.Result;
 import com.newtonbox.Services.Impl.ResultService;
 import com.newtonbox.dto.ExperimentDTO;
 import com.newtonbox.dto.ResultDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/results")
-@PreAuthorize("permitAll()")
+@PreAuthorize("isAuthenticated()")
 public class ResultController {
 
     @Autowired
@@ -24,6 +23,7 @@ public class ResultController {
 
     // Obtener todos los resultados de un proyecto
     @GetMapping
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<List<ResultDTO>> findAll() {
         List<ResultDTO> results = resultService.findAll();
         return ResponseEntity.ok(results);
@@ -31,6 +31,7 @@ public class ResultController {
 
     // Obtener un resultado por ID
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or @resultValidator.canAccessResult(#id, authentication.principal.id)")
     public ResponseEntity<ResultDTO> findById(@PathVariable Long id) {
         try {
             ResultDTO resultDTO = resultService.findById(id);
@@ -42,9 +43,10 @@ public class ResultController {
 
     // Crear un resultado
     @PostMapping("/save")
-    public ResponseEntity<ResultDTO> save(@RequestBody ResultDTO resultDTO) {
+    @PreAuthorize("hasRole('ROLE_ADMIN') or @resultValidator.canCreateResultInExperiment(#resultDTO.experimentId, authentication.principal.id)")
+    public ResponseEntity<ResultDTO> save(@RequestBody ResultDTO resultDTO, Authentication authentication) {
         try{
-            ResultDTO saved = resultService.save(resultDTO);
+            ResultDTO saved = resultService.save(resultDTO, authentication);
             return ResponseEntity.ok(saved);
         } catch (RuntimeException e){
             return ResponseEntity.badRequest().build();
@@ -53,21 +55,19 @@ public class ResultController {
 
     // Actualizar un resultado
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or @resultValidator.canUpdateResult(#id, authentication.principal.id)")
     public ResponseEntity<ResultDTO> update(@PathVariable Long id, @RequestBody ResultDTO resultDTO) {
         try {
             ResultDTO updated = resultService.update(id, resultDTO);
-            if (updated == null){
-                return ResponseEntity.notFound().build();
-            }
-            return ResponseEntity.ok(updated);
+           return updated != null ? ResponseEntity.ok(updated) : ResponseEntity.notFound().build();
         } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.badRequest().build();
         }
     }
 
     // Borrar un resultado
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or @resultValidator.canDeleteResult(#id, authentication.principal.id)")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         try {
             resultService.delete(id);
@@ -82,6 +82,7 @@ public class ResultController {
 
     // Buscar resultados por un experimento en concreto
     @GetMapping("/byExperiment/{experimentId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or @resultValidator.canAccessResultOfExperiment(#experimentId, authentication.principal.id)")
     public ResponseEntity<List<ResultDTO>> findByExperiment(@PathVariable Long experimentId) {
         try {
             ExperimentDTO experimentDTO = new ExperimentDTO();

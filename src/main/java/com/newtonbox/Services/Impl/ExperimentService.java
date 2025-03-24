@@ -2,19 +2,18 @@ package com.newtonbox.Services.Impl;
 
 import com.newtonbox.Models.*;
 import com.newtonbox.Repository.*;
+import com.newtonbox.Security.CustomUserDetails;
 import com.newtonbox.Services.IExperimentService;
 import com.newtonbox.dto.ExperimentDTO;
 import com.newtonbox.mapper.CommentMapper;
 import com.newtonbox.mapper.ExperimentMapper;
-import com.newtonbox.mapper.ParticipantMapper;
 import com.newtonbox.mapper.ResultMapper;
-import com.newtonbox.utils.PermissionEnum;
 import com.newtonbox.utils.RoleEnum;
 import jakarta.transaction.Transactional;
+import org.springframework.security.core.Authentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.sql.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -54,7 +53,10 @@ public class ExperimentService implements IExperimentService {
 
     // --- Personalizado--
     @Override
-    public List<ExperimentDTO> findByCreatedBy(UserEntity createdBy) {
+    public List<ExperimentDTO> findByCreatedBy(Long userId) {
+        UserEntity createdBy = userRepo.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+
         return experimentRepo.findByCreatedBy(createdBy).stream()
                 .map(ExperimentMapper::toDTO)
                 .collect(Collectors.toList());
@@ -62,34 +64,66 @@ public class ExperimentService implements IExperimentService {
 
     @Override
     @Transactional
-    public ExperimentDTO save(ExperimentDTO experimentDTO) {
-       Experiment experiment = ExperimentMapper.toEntity(experimentDTO);
+    public ExperimentDTO save(ExperimentDTO experimentDTO, Authentication authentication) {
+        // Convertir el DTO a entidad (ignorando el campo createdBy del DTO)
+        Experiment experiment = ExperimentMapper.toEntity(experimentDTO);
 
-       Experiment savedExperiment = experimentRepo.save(experiment);
 
-       // Participantes
-       List<Participant> participants = new ArrayList<>();
-       if(experimentDTO.getParticipants() != null){
-           experimentDTO.getParticipants().forEach(participantDTO -> {
-               Participant participant = ParticipantMapper.toEntity(participantDTO);
-               participant.setExperiment(savedExperiment);
-               participants.add(participantRepo.save(participant));
-           });
-       }
+        // Obtener la información del usuario autenticado (CustomeUserDetails)
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        String username = userDetails.getUsername();
 
-       // Comentarios
+        // Buscar la entidad del usuario por username
+        UserEntity creator = userRepo.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found with username: " + username));
+
+        // Asignar el creador obtenido al experimento
+        experiment.setCreatedBy(creator);
+
+        // Guardar el experimento para obtener su ID
+        Experiment savedExperiment = experimentRepo.save(experiment);
+
+        // Procesar participantes
+        List<Participant> participants = new ArrayList<>();
+        if (experimentDTO.getParticipants() != null) {
+            experimentDTO.getParticipants().forEach(participantDTO -> {
+                Participant participant = new Participant();
+                participant.setId(participantDTO.getId());
+
+                // Buscar al usuario por su 'username' en el repositorio
+                UserEntity user = userRepo.findByUsername(participantDTO.getUsername())
+                        .orElseThrow(() -> new RuntimeException(
+                                "User not found with username: " + participantDTO.getUsername()));
+
+                participant.setUser(user);
+
+                // Asignar el rol (si no se recibe, podrías asignar uno por defecto)
+                if (participantDTO.getRole() != null && !participantDTO.getRole().isEmpty()) {
+                    participant.setRole(RoleEnum.valueOf(participantDTO.getRole().trim()));
+                } else {
+                    throw new RuntimeException("Participant role is required.");
+                }
+
+                // Asignar el experimento creado al participante
+                participant.setExperiment(savedExperiment);
+                participants.add(participantRepo.save(participant));
+            });
+        }
+
+
+        // Procesar comentarios
         List<Comment> comments = new ArrayList<>();
-        if(experimentDTO.getComments() != null){
-           experimentDTO.getComments().forEach(commentDTO -> {
-               Comment comment = CommentMapper.toEntity(commentDTO);
-               comment.setExperiment(savedExperiment);
-               comments.add(commentRepo.save(comment));
-           });
-       }
+        if (experimentDTO.getComments() != null) {
+            experimentDTO.getComments().forEach(commentDTO -> {
+                Comment comment = CommentMapper.toEntity(commentDTO);
+                comment.setExperiment(savedExperiment);
+                comments.add(commentRepo.save(comment));
+            });
+        }
 
-       // Resultados
+        // Procesar resultados
         List<Result> results = new ArrayList<>();
-        if(experimentDTO.getResults() != null){
+        if (experimentDTO.getResults() != null) {
             experimentDTO.getResults().forEach(resultDTO -> {
                 Result result = ResultMapper.toEntity(resultDTO);
                 result.setExperiment(savedExperiment);
@@ -97,21 +131,23 @@ public class ExperimentService implements IExperimentService {
             });
         }
 
+        // Asignar las listas procesadas al experimento
         savedExperiment.setParticipants(participants);
         savedExperiment.setComments(comments);
         savedExperiment.setResults(results);
 
-        Experiment updateExperiment = experimentRepo.save(savedExperiment);
-        return ExperimentMapper.toDTO(updateExperiment);
-    }
+        // Actualizar el experimento con las asociaciones
+        Experiment updatedExperiment = experimentRepo.save(savedExperiment);
 
+        return ExperimentMapper.toDTO(updatedExperiment);
+    }
 
     @Override
     public ExperimentDTO update(Long id, ExperimentDTO experimentDTO) {
-      Experiment existingExperiment = experimentRepo.findById(id)
-              .orElseThrow(() -> new RuntimeException("Experiment not found with ID: " + id));
+        Experiment existingExperiment = experimentRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Experiment not found with ID: " + id));
 
-      // Actualizar solo atributos base (sin modificar las colecciones)
+        // Actualizar solo atributos base (sin modificar las colecciones)
         existingExperiment.setTitle(experimentDTO.getTitle());
         existingExperiment.setDescription(experimentDTO.getDescription());
         existingExperiment.setVariables(experimentDTO.getVariables());
@@ -127,6 +163,18 @@ public class ExperimentService implements IExperimentService {
         experimentRepo.delete(experiment);
     }
 
+    @Override
+    public List<ExperimentDTO> findByCreatedByUsername(String username) {
+        List<Experiment> experiments = experimentRepo.findByCreatedByUsername(username);
+        return experiments.stream()
+                .map(ExperimentMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+
+
+    // Métodos auxiliares
+
     public boolean isCreator(Long experimentId, String username) {
         Experiment exp = experimentRepo.findById(experimentId)
                 .orElseThrow(() -> new RuntimeException("Experiment not found with ID: " + experimentId));
@@ -134,16 +182,14 @@ public class ExperimentService implements IExperimentService {
     }
 
     public boolean isUserAllowed(Long experimentId, String username) {
-       Experiment exp  = experimentRepo.findById(experimentId)
-               .orElseThrow(() -> new RuntimeException("Experiment not found with ID: " + experimentId));
-       boolean isCreator = exp.getCreatedBy().getUsername().equals(username);
-       boolean isParticipant = exp.getParticipants().stream()
-               .anyMatch(p -> p.getUser().getUsername().equals(username));
-       return isCreator || isParticipant;
+        Experiment exp = experimentRepo.findById(experimentId)
+                .orElseThrow(() -> new RuntimeException("Experiment not found with ID: " + experimentId));
+        boolean isCreator = exp.getCreatedBy().getUsername().equals(username);
+        boolean isParticipant = exp.getParticipants().stream()
+                .anyMatch(p -> p.getUser().getUsername().equals(username));
+        return isCreator || isParticipant;
     }
 
-
-    // Métodos auxiliares
     private RoleEnum assignRoleBasedOnUser(UserEntity user) {
         if (user == null) {
             throw new RuntimeException("Error: El usuario recibido es NULL.");
@@ -166,4 +212,38 @@ public class ExperimentService implements IExperimentService {
         // Devolver el RoleEnum correspondiente
         return role.getRoleEnum();
     }
+    public boolean hasPermission(Long experimentId, String username, String permission) {
+        Experiment experiment = experimentRepo.findById(experimentId)
+                .orElseThrow(() -> new RuntimeException("Experiment not found with ID: " + experimentId));
+
+        // Si el usuario es el creador, le otorgamos permisos completos en el experimento.
+        if (experiment.getCreatedBy().getUsername().equalsIgnoreCase(username)) {
+            return true;
+        }
+
+        // Si el usuario es participante, recorremos sus roles para verificar el permiso.
+        for (Participant participant : experiment.getParticipants()) {
+            if (participant.getUser().getUsername().equalsIgnoreCase(username)) {
+                for (Role role : participant.getUser().getRoles()) {
+                    for (Permission perm : role.getPermissionsList()) {
+                        if (perm.getPermissionEnum().name().equalsIgnoreCase(permission)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    // Verifica si el usuario que hace la peticion es el creador del experimento
+    public boolean isCreatorOfParticipant(Long participantId, Long userId) {
+        Participant participant = participantRepo.findById(participantId)
+                .orElseThrow(() -> new RuntimeException("Participant not found with ID: " + participantId));
+
+        // Verificamos si el creador del experimento es el usuario autenticado
+        return participant.getExperiment().getCreatedBy().getId().equals(userId);
+    }
+
+
 }

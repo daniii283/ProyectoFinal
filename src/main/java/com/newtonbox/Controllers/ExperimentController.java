@@ -1,13 +1,13 @@
 package com.newtonbox.Controllers;
 
-import com.newtonbox.Models.Experiment;
-import com.newtonbox.Models.UserEntity;
+import com.newtonbox.Security.CustomUserDetails;
 import com.newtonbox.Services.Impl.ExperimentService;
 import com.newtonbox.dto.ExperimentDTO;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,7 +18,6 @@ import java.util.List;
 public class ExperimentController {
 
     @Autowired
-    @Qualifier("experimentService")
     private ExperimentService experimentService;
 
     // ------------------Métodos CRUD------------------
@@ -32,10 +31,10 @@ public class ExperimentController {
     }
 
     // Obtener un experimento por ID
-    // -> ADMIN o si el usuario es creador/participante. Para esto utilizamos el metodo isUserAllowed del servicio
+    // -> ADMIN o si el usuario es creador/participante.
 
     @GetMapping("/search/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN') or @experimentService.isUserAllowed(#id, authentication.principal.username)")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or @experimentValidator.isUserAllowed(#id, authentication.principal.username)")
     public ResponseEntity<ExperimentDTO> findById(@PathVariable Long id) {
         try {
             ExperimentDTO experimentDTO = experimentService.findById(id);
@@ -45,14 +44,13 @@ public class ExperimentController {
         }
     }
 
-    // Crear un experimento (Solo ADMIN o RESEARCHER)
     @PostMapping("/save")
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_RESEARCHER')")
-    public ResponseEntity<ExperimentDTO> save(@RequestBody ExperimentDTO experimentDTO) {
-        try{
-            ExperimentDTO savedExp = experimentService.save(experimentDTO);
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ExperimentDTO> save(@RequestBody ExperimentDTO experimentDTO, Authentication authentication) {
+        try {
+            ExperimentDTO savedExp = experimentService.save(experimentDTO, authentication);
             return ResponseEntity.ok(savedExp);
-        }catch (RuntimeException e){
+        } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         }
     }
@@ -60,7 +58,7 @@ public class ExperimentController {
     // Actualizar un experimento
     // -> Solo ADMIN o si el usuario es el creador (usamos isCreator)
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN') or @experimentService.isCreator(#id, authentication.principal.username)")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or @experimentValidator.isCreator(#id, authentication.principal.username)")
     public ResponseEntity<ExperimentDTO> update(@PathVariable Long id, @RequestBody ExperimentDTO experimentDTO) {
         try {
             ExperimentDTO updateExp = experimentService.update(id, experimentDTO);
@@ -75,15 +73,16 @@ public class ExperimentController {
 
     // Borrar un experimento (Solo ADMIN)
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or @experimentValidator.isCreator(#id, authentication.principal.username)")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         try {
             experimentService.delete(id);
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
     }
+
 
     // ------------------Métodos Personalizados------------------
 
@@ -92,10 +91,7 @@ public class ExperimentController {
     @PreAuthorize("hasRole('ROLE_ADMIN') or #userId == authentication.principal.id")
     public ResponseEntity<List<ExperimentDTO>> findByCreatedBy(@PathVariable Long userId) {
         try {
-            UserEntity userCreator = new UserEntity();
-            userCreator.setId(userId);
-
-            List<ExperimentDTO> experiments = experimentService.findByCreatedBy(userCreator);
+            List<ExperimentDTO> experiments = experimentService.findByCreatedBy(userId);
             if (experiments.isEmpty()) {
                 return ResponseEntity.notFound().build();
             }
@@ -104,4 +100,14 @@ public class ExperimentController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @GetMapping("/my")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<ExperimentDTO>> findMyExperiments(Authentication authentication) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        String username = userDetails.getUsername();
+        List<ExperimentDTO> experiments = experimentService.findByCreatedByUsername(username);
+        return experiments.isEmpty() ? ResponseEntity.notFound().build() : ResponseEntity.ok(experiments);
+    }
+
 }

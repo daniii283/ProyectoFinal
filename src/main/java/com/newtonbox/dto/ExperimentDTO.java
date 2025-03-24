@@ -1,7 +1,6 @@
 package com.newtonbox.dto;
 
 import lombok.*;
-
 import java.util.List;
 
 @Getter
@@ -15,7 +14,7 @@ public class ExperimentDTO {
     private String title;
     private String description;
     private String variables;
-    private UserDTO createdBy;
+    private String createdBy;
     private List<ParticipantDTO> participants;
     private List<ResultDTO> results;
     private List<CommentDTO> comments;

@@ -1,33 +1,40 @@
 package com.newtonbox.mapper;
 
 import com.newtonbox.Models.Experiment;
+import com.newtonbox.Models.UserEntity;
 import com.newtonbox.dto.ExperimentDTO;
-
 import java.util.stream.Collectors;
 
 public class ExperimentMapper{
 
-    public static ExperimentDTO toDTO(Experiment experiment){
-        if(experiment == null) return null;
+    public static ExperimentDTO toDTO(Experiment experiment) {
+        if (experiment == null) return null;
 
         return ExperimentDTO.builder()
                 .id(experiment.getId())
                 .title(experiment.getTitle())
                 .description(experiment.getDescription())
                 .variables(experiment.getVariables())
-                .createdBy(UserMapper.toDTO(experiment.getCreatedBy())) // Solo info básica del creador
-                .participants(experiment.getParticipants().stream()
-                        .map(ParticipantMapper::toDTO)
-                        .collect(Collectors.toList()))
-                .results(experiment.getResults().stream()
-                        .map(ResultMapper::toDTO)
-                        .collect(Collectors.toList()))
-                .comments(experiment.getComments().stream()
-                        .map(CommentMapper::toDTO)
-                        .collect(Collectors.toList()))
+                
+                .createdBy(experiment.getCreatedBy().getUsername())
+                .participants(
+                        experiment.getParticipants().stream()
+                                .map(ParticipantMapper::toDTO) // Esto devuelve ParticipantDTO
+                                .collect(Collectors.toList())
+                )
+                .results(
+                        experiment.getResults().stream()
+                                .map(ResultMapper::toDTO)
+                                .collect(Collectors.toList())
+                )
+                .comments(
+                        experiment.getComments().stream()
+                                .map(CommentMapper::toDTO)
+                                .collect(Collectors.toList())
+                )
                 .build();
-
     }
+
 
     public static Experiment toEntity(ExperimentDTO experimentDTO){
 
@@ -37,7 +44,13 @@ public class ExperimentMapper{
         experiment.setTitle(experimentDTO.getTitle());
         experiment.setDescription(experimentDTO.getDescription());
         experiment.setVariables(experimentDTO.getVariables());
-        experiment.setCreatedBy(UserMapper.toEntity(experimentDTO.getCreatedBy()));
+
+        if (experiment.getCreatedBy() != null){
+           UserEntity user = new UserEntity();
+           user.setUsername(experimentDTO.getCreatedBy());
+           experiment.setCreatedBy(user);
+        }
+
         return experiment;
 
     }

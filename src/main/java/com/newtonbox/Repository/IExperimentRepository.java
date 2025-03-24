@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface IExperimentRepository extends JpaRepository<Experiment, Long> {
     List<Experiment> findByCreatedBy(UserEntity createdBy);
+    List<Experiment> findByCreatedByUsername(String username);
 }

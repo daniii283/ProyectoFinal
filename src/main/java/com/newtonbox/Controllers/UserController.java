@@ -2,6 +2,7 @@ package com.newtonbox.Controllers;
 
 import com.newtonbox.Models.UserEntity;
 import com.newtonbox.Services.Impl.UserService;
+import com.newtonbox.dto.ChangePasswordDTO;
 import com.newtonbox.dto.UserDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -44,19 +45,14 @@ public class UserController {
 
     /* La petición POST sera manejado en otro controlador */
 
-    // Actualizar un usuario
-    // -> Solo ADMIN o si es el usuario autenticado
-    @PutMapping("/update/{id}")
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN') or #id == authentication.principal.id")
-    public ResponseEntity<UserDTO> update(@PathVariable Long id, @RequestBody UserDTO userDTO) {
+    @PutMapping("/{id}/changePassword")
+    @PreAuthorize("#id == authentication.principal.id or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<String> changePassword(@PathVariable Long id, @RequestBody ChangePasswordDTO changePasswordDTO){
         try {
-            UserDTO updateUser = userService.update(id, userDTO);
-            if(updateUser == null){
-                return ResponseEntity.notFound().build();
-            }
-            return ResponseEntity.ok(updateUser);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+            userService.changePassword(id, changePasswordDTO);
+            return ResponseEntity.ok("Password updated succesfully");
+        }catch (RuntimeException e){
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 

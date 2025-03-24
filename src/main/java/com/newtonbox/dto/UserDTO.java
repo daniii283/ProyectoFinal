@@ -1,7 +1,5 @@
 package com.newtonbox.dto;
 
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import java.util.Set;
@@ -16,7 +14,5 @@ public class UserDTO {
     private Long id;
     private String username;
     private Set<RoleDTO> roles;
-
-    @JsonIgnore
     private String password;
 }

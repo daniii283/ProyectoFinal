@@ -26,4 +26,8 @@ public class Result {
     @JsonBackReference(value = "experiment-results")
     private Experiment experiment;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by", nullable = true)
+    @JsonBackReference
+    private UserEntity createdBy;
 }

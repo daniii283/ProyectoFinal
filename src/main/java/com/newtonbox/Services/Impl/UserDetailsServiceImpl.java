@@ -2,7 +2,7 @@ package com.newtonbox.Services.Impl;
 
 import com.newtonbox.Models.UserEntity;
 import com.newtonbox.Repository.IUserRepository;
-import com.newtonbox.Security.CustomeUserDetails;
+import com.newtonbox.Security.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -37,7 +37,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             });
         });
 
-        return new CustomeUserDetails(user.getId(),user.getUsername(), user.getPassword(),
+        return new CustomUserDetails(user.getId(),user.getUsername(), user.getPassword(),
                 user.isEnabled(),
                 user.isAccountNoExpired(),
                 user.isCredentialNoExpired(),

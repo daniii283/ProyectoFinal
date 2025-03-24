@@ -11,6 +11,9 @@ public class ResultMapper {
         return ResultDTO.builder()
                 .id(result.getId())
                 .data(result.getData())
+                .experimentId(result.getExperiment() != null ? result.getExperiment().getId() : null)
+                .experimentTitle(result.getExperiment() != null ? result.getExperiment().getTitle() : null)
+                .createdByUsername(result.getCreatedBy() != null ? result.getCreatedBy().getUsername() : null)
                 .build();
     }
 

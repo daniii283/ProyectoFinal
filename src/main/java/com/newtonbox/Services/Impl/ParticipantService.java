@@ -1,24 +1,25 @@
 package com.newtonbox.Services.Impl;
 
-import com.newtonbox.Models.Experiment;
-import com.newtonbox.Models.Participant;
-import com.newtonbox.Models.Permission;
-import com.newtonbox.Models.UserEntity;
+import com.newtonbox.Models.*;
 import com.newtonbox.Repository.IExperimentRepository;
 import com.newtonbox.Repository.IParticipantRepository;
 import com.newtonbox.Repository.IUserRepository;
+import com.newtonbox.Security.CustomUserDetails;
 import com.newtonbox.Services.IParticipantService;
 import com.newtonbox.dto.ParticipantDTO;
+import com.newtonbox.dto.RoleDTO;
 import com.newtonbox.mapper.ParticipantMapper;
-import com.newtonbox.utils.PermissionEnum;
 import com.newtonbox.utils.RoleEnum;
+import com.newtonbox.validators.ParticipantValidator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Service
+@Service("participantService")
 public class ParticipantService implements IParticipantService {
 
     @Autowired
@@ -29,6 +30,9 @@ public class ParticipantService implements IParticipantService {
 
     @Autowired
     private IExperimentRepository experimentRepo;
+
+    @Autowired
+    private ParticipantValidator participantValidator;
 
     @Override
     public List<ParticipantDTO> findAll() {
@@ -65,39 +69,70 @@ public class ParticipantService implements IParticipantService {
     }
 
     @Override
-    public ParticipantDTO save(ParticipantDTO participantDTO) {
-        // Convertir el DTO a entidad
-        Participant participant = ParticipantMapper.toEntity(participantDTO);
-        if(participant.getUser() == null || participant.getUser().getId() == null){
-            throw new RuntimeException("The participant's username cannot be null.");
+    public ParticipantDTO assignRoleToParticipant(Long participantId, RoleDTO roleDTO) {
+        // Recuperar el participante existente
+        Participant participant = participantRepo.findById(participantId)
+                .orElseThrow(() -> new RuntimeException("Participant not found with ID: " + participantId));
+
+        // Validar y asignar el rol desde RoleDTO
+        if(roleDTO.getRoleEnum() == null || roleDTO.getRoleEnum().isEmpty()){
+            throw new RuntimeException("Role is required");
         }
 
-        // Verificar que el usuario existe
-        UserEntity user = userRepo.findById(participant.getUser().getId())
-                .orElseThrow(() -> new RuntimeException("User not found with ID: " + participant.getUser().getId()));
+        try {
+            participant.setRole(RoleEnum.valueOf(roleDTO.getRoleEnum().trim()));
+        }catch (IllegalArgumentException e){
+            throw new RuntimeException("Invalid role provided: " + roleDTO.getRoleEnum());
+        }
 
+        // Guardar los cambios y devolver el DTO actualizado
+        Participant updated = participantRepo.save(participant);
+        return ParticipantMapper.toDTO(updated);
+    }
+
+    @Override
+    public ParticipantDTO save(ParticipantDTO participantDTO, Authentication authentication) {
+        // Obtener el usuario autenticado
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long authenticatedUserId = userDetails.getId();
+
+        // Convertir el DTO a entidad (sin asignar el experimento aún)
+        Participant participant = ParticipantMapper.toEntity(participantDTO);
+
+        // Buscar el usuario autenticado en la base de datos
+        UserEntity user = userRepo.findById(authenticatedUserId)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + authenticatedUserId));
+        participant.setUser(user);
+
+        // Verificar que el experimentId viene en el DTO
+        if (participantDTO.getExperimentId() == null) {
+            throw new RuntimeException("Experiment ID is required to create a participant.");
+        }
+
+        // Recuperar la entidad Experiment desde la base de datos
+        Experiment experiment = experimentRepo.findById(participantDTO.getExperimentId())
+                .orElseThrow(() -> new RuntimeException("Experiment not found with ID: " + participantDTO.getExperimentId()));
+        participant.setExperiment(experiment);
+
+        // Verificar autoinscripción
+        if (!participantValidator.canJoinExperiment(participantDTO, authenticatedUserId)) {
+            throw new RuntimeException("Cannot join experiment: conditions not met");
+        }
+
+        // Asignar rol por defecto si no se ha proporcionado
+        String roleString = Optional.ofNullable(participantDTO.getRole()).orElse("REVIEWER").trim();
+        try {
+            participant.setRole(RoleEnum.valueOf(roleString));
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Invalid role provided: " + roleString);
+        }
+
+        // Guardar el participante y devolver el DTO resultante
         Participant saved = participantRepo.save(participant);
         return ParticipantMapper.toDTO(saved);
     }
 
 
-
-        @Override
-    public ParticipantDTO update(Long id, ParticipantDTO participantDTO) {
-        Participant existingParticipant = participantRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Participant not found with ID: " + id ));
-
-        if(participantDTO.getRole() != null){
-            try{
-                existingParticipant.setRole(RoleEnum.valueOf(participantDTO.getRole()));
-            }catch (IllegalArgumentException e){
-                throw new RuntimeException("Invalid role provided: " + participantDTO.getRole());
-            }
-        }
-
-        Participant updated = participantRepo.save(existingParticipant);
-        return ParticipantMapper.toDTO(updated);
-    }
 
     @Override
     public void delete(Long id) {
@@ -105,4 +140,5 @@ public class ParticipantService implements IParticipantService {
                 .orElseThrow(() -> new RuntimeException("Participant not found with ID: " + id));
         participantRepo.delete(existing);
     }
+
 }

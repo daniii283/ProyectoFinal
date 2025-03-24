@@ -11,5 +11,8 @@ public class ResultDTO {
 
     private Long id;
     private String data;
+    private Long experimentId;
+    private String experimentTitle;
+    private String createdByUsername;
 
 }

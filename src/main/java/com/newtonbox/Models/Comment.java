@@ -3,6 +3,7 @@ package com.newtonbox.Models;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 
 import java.time.LocalDateTime;
@@ -35,5 +36,6 @@ public class Comment {
     private Experiment experiment;
 
     @Column(nullable = false)
-    private LocalDateTime timestamp = LocalDateTime.now();
+    @CreationTimestamp
+    private LocalDateTime timestamp;
 }
