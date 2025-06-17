@@ -1,14 +1,12 @@
 package com.newtonbox.validators;
 
-import com.newtonbox.Models.Experiment;
-import com.newtonbox.Models.Participant;
-import com.newtonbox.Models.Permission;
-import com.newtonbox.Models.Role;
-import com.newtonbox.Repository.IExperimentRepository;
+import com.newtonbox.models.Experiment;
+import com.newtonbox.models.Participant;
+import com.newtonbox.models.Permission;
+import com.newtonbox.models.Role;
+import com.newtonbox.repository.IExperimentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Component("experimentValidator")
 public class ExperimentValidator {

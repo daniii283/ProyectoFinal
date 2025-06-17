@@ -1,10 +1,10 @@
 package com.newtonbox.validators;
 
-import com.newtonbox.Models.Experiment;
-import com.newtonbox.Models.Participant;
-import com.newtonbox.Repository.IExperimentRepository;
-import com.newtonbox.Repository.IParticipantRepository;
-import com.newtonbox.Repository.IUserRepository;
+import com.newtonbox.models.Experiment;
+import com.newtonbox.models.Participant;
+import com.newtonbox.repository.IExperimentRepository;
+import com.newtonbox.repository.IParticipantRepository;
+import com.newtonbox.repository.IUserRepository;
 import com.newtonbox.dto.ParticipantDTO;
 import com.newtonbox.utils.RoleEnum;
 import org.springframework.beans.factory.annotation.Autowired;

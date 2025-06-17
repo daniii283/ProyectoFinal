@@ -1,10 +1,8 @@
 package com.newtonbox.mapper;
 
-import com.newtonbox.Models.Role;
-import com.newtonbox.Models.UserEntity;
+import com.newtonbox.models.UserEntity;
 import com.newtonbox.dto.UserDTO;
-import com.newtonbox.dto.RoleDTO;
-import com.newtonbox.utils.RoleEnum;
+
 import java.util.stream.Collectors;
 
 public class UserMapper {
@@ -16,9 +14,9 @@ public class UserMapper {
                 .id(user.getId())
                 .username(user.getUsername())
                 .roles(user.getRoles() != null ?
-                        user.getRoles().stream()
-                        .map(role -> new RoleDTO(role.getId(), role.getRoleEnum().name()))
-                        .collect(Collectors.toSet())
+                        user.getRoles().stream()  // Obtenemos los roles
+                                .map(role -> role.getRoleEnum().name())  // Aquí extraemos solo el nombre del rol
+                                .collect(Collectors.toSet())  // Y lo convertimos a un Set<String>
                         : null)
                 .build();
     }
@@ -37,17 +35,7 @@ public class UserMapper {
             user.setPassword(userDTO.getPassword());
         }
 
-        if (userDTO.getRoles() != null && !userDTO.getRoles().isEmpty()){
-            user.setRoles(userDTO.getRoles().stream()
-                    .map(roleDTO -> {
-                        Role role = new Role();
-                        role.setId(roleDTO.getId());
-                        role.setRoleEnum(RoleEnum.valueOf(roleDTO.getRoleEnum().trim()));
-                        return role;
-
-                    })
-                    .collect(Collectors.toSet()));
-        }
         return user;
     }
+
 }

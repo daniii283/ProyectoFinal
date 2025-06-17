@@ -1,6 +1,6 @@
 package com.newtonbox.mapper;
 
-import com.newtonbox.Models.Result;
+import com.newtonbox.models.Result;
 import com.newtonbox.dto.ResultDTO;
 
 public class ResultMapper {

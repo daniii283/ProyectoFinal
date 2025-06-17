@@ -1,7 +1,7 @@
 package com.newtonbox.mapper;
 
-import com.newtonbox.Models.Participant;
-import com.newtonbox.Models.UserEntity;
+import com.newtonbox.models.Participant;
+import com.newtonbox.models.UserEntity;
 import com.newtonbox.dto.ParticipantDTO;
 import com.newtonbox.utils.RoleEnum;
 
@@ -36,12 +36,8 @@ public class ParticipantMapper {
         }
 
         // Manejo de excepciones seguro al convertir `String` a `Enum`
-        try {
-            if (participantDTO.getRole() != null) {
-                participant.setRole(RoleEnum.valueOf(participantDTO.getRole().trim())); // O RoleEnum si aplica
-            }
-        } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Invalid role provided: " + participantDTO.getRole());
+        if (participantDTO.getRole() != null) {
+            participant.setRole(RoleEnum.valueOf(participantDTO.getRole().trim())); // O RoleEnum si aplica
         }
         return participant;
     }

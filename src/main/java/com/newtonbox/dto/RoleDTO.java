@@ -1,9 +1,6 @@
 package com.newtonbox.dto;
 
-
 import lombok.*;
-
-import java.util.Set;
 
 @Getter
 @Setter
@@ -11,7 +8,5 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 public class RoleDTO {
-
-    private Long id;
-    private String roleEnum;
+   private String roleEnum;
 }

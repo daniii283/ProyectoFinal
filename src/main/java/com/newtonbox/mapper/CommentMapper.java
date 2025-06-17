@@ -1,8 +1,8 @@
 package com.newtonbox.mapper;
 
-import com.newtonbox.Models.Comment;
-import com.newtonbox.Models.Experiment;
-import com.newtonbox.Models.UserEntity;
+import com.newtonbox.models.Comment;
+import com.newtonbox.models.Experiment;
+import com.newtonbox.models.UserEntity;
 import com.newtonbox.dto.CommentDTO;
 
 

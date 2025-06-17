@@ -1,7 +1,7 @@
 package com.newtonbox.mapper;
 
-import com.newtonbox.Models.Experiment;
-import com.newtonbox.Models.UserEntity;
+import com.newtonbox.models.Experiment;
+import com.newtonbox.models.UserEntity;
 import com.newtonbox.dto.ExperimentDTO;
 import java.util.stream.Collectors;
 

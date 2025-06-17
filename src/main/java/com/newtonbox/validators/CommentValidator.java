@@ -1,9 +1,9 @@
 package com.newtonbox.validators;
 
-import com.newtonbox.Models.Comment;
-import com.newtonbox.Models.Experiment;
-import com.newtonbox.Repository.ICommentRepository;
-import com.newtonbox.Repository.IExperimentRepository;
+import com.newtonbox.models.Comment;
+import com.newtonbox.models.Experiment;
+import com.newtonbox.repository.ICommentRepository;
+import com.newtonbox.repository.IExperimentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
